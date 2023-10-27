@@ -2,6 +2,7 @@ package main
 
 import (
 	"fmt"
+	"math/rand"
 	"reflect"
 	"testing"
 )
@@ -37,5 +38,18 @@ func TestSorts(t *testing.T) {
 
 	t.Run("Test sorting for mergeSort", func(t *testing.T) {
 		testSortAll(t, mergeSort)
+	})
+}
+
+func BenchmarkSorts(b *testing.B) {
+	nbench := func(b *testing.B, sortFn func([]int) []int) {
+		sortFn(rand.Perm(10000))
+	}
+	b.Run("Benchmark insertSort", func(b *testing.B) {
+		nbench(b, insertSort)
+	})
+
+	b.Run("Benchmark mergeSort", func(b *testing.B) {
+		nbench(b, mergeSort)
 	})
 }

@@ -12,7 +12,32 @@ func insertSort(a []int) []int {
 	}
 	return result
 }
+func merge(a, b []int) []int {
+	result := make([]int, len(a)+len(b))
+	i, j := 0, 0
+	for k := 0; k < len(result); k++ {
+		if i >= len(a) {
+			result[k] = b[j]
+			j++
+		} else {
+			if j < len(b) && b[j] <= a[i] {
+				result[k] = b[j]
+				j++
+			} else {
+				result[k] = a[i]
+				i++
+			}
+		}
+	}
+	return result
+}
 
 func mergeSort(a []int) []int {
-	return []int{1, 2, 3}
+	if len(a) == 1 {
+		return a
+	} else {
+		start, end := 0, len(a)
+		mid := len(a) / 2
+		return merge(mergeSort(a[start:mid]), mergeSort(a[mid:end]))
+	}
 }
