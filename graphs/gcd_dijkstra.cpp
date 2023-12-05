@@ -93,42 +93,52 @@ private:
 };
 
 struct Data {
-	map<string, vector<string>> vs;
-	map<pair<string, string>, int> ws;
+	map<int, vector<int>> vs;
+	map<pair<int, int>, double> ws;
 };
 
-Data parse_input(vector<string> input) {
-	Data out;
-	string src, dest;
-	int weight;
-	for (string& s : input) {
-		src = s[0];
-		dest = s[1];
-		weight = s[2] - '0';
-		if (out.vs[src].size() == 0)
-			out.vs[src] = {dest};
-		else
-			out.vs[src].push_back(dest);
-		if (out.vs[dest].size() == 0)
-			out.vs[dest] = {src};
-		else
-			out.vs[dest].push_back(src);
-		out.ws[{src, dest}] = weight;
-		out.ws[{dest, src}] = weight;
-	}
-	return out;
+
+int my_gcd(int a, int b) {
+  int c = 0;
+  if (a < b) {
+    int tmp = a;
+    a = b;
+    b = tmp;
+  }
+  while ((c = a % b) != 0) {
+    a = b;
+    b = c;
+  }
+  return b;
 }
 
-int dijkstra_dist(string src, string dst,
-		map<string, vector<string>>& vs,
-		map<pair<string, string>, int>& ws,
-		PrioQ<pair<string, int>>& pq) {
+Data generate_gcd_input() {
+  Data out;
+  double weight, gcd;
+  vector<int> conns;
+  for (int i = 2; i <= 50; i++) {
+    out.vs[i] = {};
+    for (int j = 2; j <= 50; j++) {
+      weight = 1.0 / ((double)(my_gcd(i, j)));
+      if (weight < 1) {
+        out.vs[i].push_back(j);
+        out.ws[{i, j}] = weight;
+      }
+    }
+  }
+  return out;
+}
 
-	pq.insert({src, 0});
+double dijkstra_dist(int src, int dst,
+	map<int, vector<int>>& vs,
+	map<pair<int, int>, double>& ws,
+	PrioQ<pair<int, double>>& pq) {
+
+	pq.insert({src, 0.0});
 	auto [cur, cur_dist] = pq.pop_top();
-	int dist, mindist;
+	double dist, mindist;
 	while (cur != dst) {
-		for (string& v : vs[cur]) {
+		for (int v : vs[cur]) {
 			dist = cur_dist + ws[{cur, v}];
       pq.insert({v, dist});
 		}
@@ -139,19 +149,18 @@ int dijkstra_dist(string src, string dst,
 	return cur_dist;
 }
 
+
 class is_node_better {
 public:
-bool operator()(pair<string, int>& a, pair<string, int>& b) {
+bool operator()(pair<int, double>& a, pair<int, double>& b) {
 	return a.second < b.second;
 }
 };
 
 int main() {
-	vector<string> input = {"AB1", "AC2", "CE1", "BD1", "EF3", "FI1", "EH1", "HG1"};
+	auto [vs, ws] = generate_gcd_input();
 
-	auto [vs, ws] = parse_input(input);
-
-	BinHeap<pair<string, int>, is_node_better> pq;
-	int min_dist = dijkstra_dist("A", "G", vs, ws, pq);
+	BinHeap<pair<int, double>, is_node_better> pq;
+	double min_dist = dijkstra_dist(9, 50, vs, ws, pq);
 	std::cout << "Minimum distance: " << min_dist << std::endl;
 }

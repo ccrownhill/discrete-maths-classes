@@ -14,6 +14,9 @@ public:
 	virtual void insert(T val) = 0;
 	virtual T get_top() = 0;
 	virtual T pop_top() = 0;
+	virtual int find_cond(function<bool(T)>) = 0;
+	virtual T get_idx(int) = 0;
+	virtual void change_idx(int, T) = 0;
 	virtual ~PrioQ() {}
 };
 
@@ -49,10 +52,6 @@ public:
 		return out;
 	}
 
-
-private:
-	vector<T> arr;
-
 	void heapify(int idx) {
 		if (arr.size() == 1) {
 			return;
@@ -71,6 +70,27 @@ private:
 			return;
 		}
 	}
+
+	T get_idx(int idx) {
+		return arr[idx];
+	}
+
+	void change_idx(int idx, T val) {
+		arr[idx] = val;
+		heapify(idx);
+	}
+
+
+	int find_cond(function<bool(T)> cond) {
+		for (int i = 0; i < arr.size(); i++) {
+			if (cond(arr[i])) {
+				return i;
+			}
+		}
+		return -1;
+	}
+private:
+	vector<T> arr;
 
 
 	void swap(int i1, int i2) {
@@ -123,15 +143,30 @@ int dijkstra_dist(string src, string dst,
 		map<string, vector<string>>& vs,
 		map<pair<string, string>, int>& ws,
 		PrioQ<pair<string, int>>& pq) {
-
+	//map<string, int> distm;
+	vector<string> touched = {src};
+	//distm[src] = 0;
 	pq.insert({src, 0});
 	auto [cur, cur_dist] = pq.pop_top();
 	int dist, mindist;
 	while (cur != dst) {
 		for (string& v : vs[cur]) {
+			//dist = distm[cur] + ws[{cur, v}];
 			dist = cur_dist + ws[{cur, v}];
-      pq.insert({v, dist});
+			int dist_idx = pq.find_cond(
+					[&](pair<string, int> a) {
+						return a.first == v;
+					});
+			if (dist_idx != -1) {
+				if (dist < pq.get_idx(dist_idx).second) {
+					//distm[v] = dist;
+					pq.change_idx(dist_idx, {v, dist});
+				}
+			} else {
+				pq.insert({v, dist});
+			}
 		}
+		touched.push_back(cur);
 		auto popped = pq.pop_top();
 		cur = popped.first;
 		cur_dist = popped.second;
