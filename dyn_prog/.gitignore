@@ -1,3 +1,5 @@
 *
+!rod_cut_go
+!*.go
 !.gitignore
 !*.cpp

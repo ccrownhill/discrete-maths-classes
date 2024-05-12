@@ -1,3 +1,5 @@
 *
+!dijkstra_ford_go
 !*.cpp
 !.gitignore
+!*.go
