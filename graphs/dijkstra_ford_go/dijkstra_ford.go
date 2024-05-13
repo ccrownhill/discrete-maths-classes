@@ -1,6 +1,69 @@
 package main
 
-func Dijkstra(graph []map[int]int, from, to int) (int, []int) {
+type MinVert interface {
+	GetMin() (int, int)
+	RemoveMin()
+	Add(vert, dist int)
+}
+
+type MinList struct {
+	items [][]int
+}
+
+func (ml *MinList) GetMin() (int, int) {
+	return ml.items[len(ml.items)-1][0], ml.items[len(ml.items)-1][1]
+}
+
+func (ml *MinList) RemoveMin() {
+	if len(ml.items) > 0 {
+		ml.items = ml.items[:len(ml.items)-1]
+	}
+}
+
+func (ml *MinList) Add(vert, dist int) {
+	if len(ml.items) == 0 || dist < ml.items[len(ml.items)-1][1] {
+		ml.items = append(ml.items, []int{vert, dist})
+	} else {
+		ml.items = append(ml.items, ml.items[len(ml.items)-1])
+		i := len(ml.items) - 2
+		for ; i >= 0 && dist > ml.items[i][1]; i-- {
+		}
+		ml.items[i+1] = []int{vert, dist}
+	}
+}
+
+func Dijkstra(graph []map[int]int, from, to int) int {
+	// map of distances from "from" to all other nodes
+	dist := make(map[int]int)
+	// fill map with distances of adjacent nodes
+	ml := MinList{[][]int{}}
+	for vert, d := range graph[from] {
+		dist[vert] = d
+		ml.Add(vert, d)
+	}
+
+	for v, d := ml.GetMin(); v != to; {
+		ml.RemoveMin()
+		for i := 0; i < len(graph); i++ {
+			dist_v_to_i, is_in_map := graph[v][i]
+			if i == from || !is_in_map {
+				continue
+			}
+			tmpDist := d + dist_v_to_i
+			orig_dist_to_i, is_finite := dist[i]
+
+			if !is_finite || tmpDist < orig_dist_to_i {
+				dist[i] = tmpDist
+				ml.Add(i, tmpDist)
+			}
+		}
+		break
+	}
+
+	return dist[to]
+}
+
+func Bellman(graph []map[int]int, from, to int) (int, []int) {
 	s := make([][][]int, len(graph))
 	for i, _ := range s {
 		s[i] = make([][]int, len(graph))
